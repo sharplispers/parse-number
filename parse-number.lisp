@@ -1,6 +1,6 @@
 ;;;; -*- Mode: Lisp -*-
 ;;;; Defines functions to parse any number type, without using the reader
-;;;; Version: 1.0
+;;;; Version: 1.1
 ;;;; Author: Matthew Danish -- mrd.debian.org
 ;;;;
 ;;;; Copyright 2002 Matthew Danish.

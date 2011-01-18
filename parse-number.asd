@@ -2,7 +2,8 @@
 
 (defsystem :parse-number
   :author "Matthew Danish"
-  :version "1.0"
+  :maintainer "Stelian Ionescu <sionescu@cddr.org>"
+  :version "1.1"
   :components ((:file "parse-number"))
   :in-order-to ((asdf:test-op (asdf:load-op :parse-number-tests)))
   :perform (asdf:test-op :after (op c)
