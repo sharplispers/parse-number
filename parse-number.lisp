@@ -35,11 +35,12 @@
   (:nicknames #:parse-number)
   (:export #:parse-number
 	   #:parse-real-number
-	   #:parse-positive-real-number))
+	   #:parse-positive-real-number
+           #:invalid-number))
 
 (in-package #:org.mapcar.parse-number)
 
-(define-condition invalid-number ()
+(define-condition invalid-number (parse-error)
   ((value :reader value
 	  :initarg :value
 	  :initform nil)
