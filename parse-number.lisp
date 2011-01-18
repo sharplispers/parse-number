@@ -303,7 +303,8 @@
 		     (if (>= (number-value frac-part) 0)
 			 (+ (number-value whole-part)
 			    (/ (number-value frac-part)
-			       (expt 10.0 (places frac-part))))
+			       (expt (coerce 10.0 *read-default-float-format*)
+				     (places frac-part))))
 			 (invalid-number "Misplaced - sign")))))
 	      (t
 	       (values (parse-integer string

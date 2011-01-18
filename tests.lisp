@@ -14,21 +14,23 @@
 (defparameter *expected-failures* '("35.66l5" "2.4E4"))
 
 (defun run-tests ()
-  (format t "~&~16@A (~16@A) = ~16A~%~%"
-	  "String value" "READ value" "Parsed value")
+  (format t "~&~16@A (~16@A) = ~16A ~16A~%~%"
+	  "String value" "READ value" "Parsed value" "*rdff*")
   (let ((expected-failures '())
 	(unexpected-failures '()))
     (dolist (value *test-values*)
-      (let ((left (read-from-string value))
-	    (right (parse-number value)))
-	(format t "~&~16@A (~16@A) = ~16A~%"
-		value
-		left
-		right)
-	(unless (eql left right)
-	  (if (find value *expected-failures* :test #'string=)
-	      (push value expected-failures)
-	      (push value unexpected-failures)))))
+      (dolist (*read-default-float-format* '(double-float single-float))
+	(let ((left (read-from-string value))
+	      (right (parse-number value)))
+	  (format t "~&~16@A (~16@A) = ~16A ~16A~%"
+		  value
+		  left
+		  right
+		  *read-default-float-format*)
+	  (unless (eql left right)
+	    (if (find value *expected-failures* :test #'string=)
+		(pushnew value expected-failures :test #'string=)
+		(pushnew value unexpected-failures :test #'string=))))))
     (flet ((format-failures (label val)
 	     (when val
 	       (format t "~A: ~{~_~A~^, ~}.~%" label val))))
