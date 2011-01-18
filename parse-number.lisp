@@ -214,7 +214,7 @@
 	       ((#\d #\D)
 		10.0d0)
 	       ((#\e #\E)
-		10)
+		(coerce 10 *read-default-float-format*))
 	       ((#\s #\S)
 		10.0s0)
 	       ((#\l #\L)
@@ -268,12 +268,12 @@
 			   (parse-integers string start end
 					   (list .-pos exp-pos)
 					   :radix radix)
-			 (* (+ (number-value whole-place)
-			       (/ (number-value frac-place)
-				  (expt radix
-					(places frac-place))))
-			    (expt (base-for-exponent-marker exp-marker)
-				  (number-value exp-place)))))))
+			 (let ((base (base-for-exponent-marker exp-marker)))
+			   (* (+ (number-value whole-place)
+				 (/ (number-value frac-place)
+				    (expt (float radix base)
+					  (places frac-place))))
+			      (expt base (number-value exp-place))))))))
 	      (exp-pos
 	       (if (/= radix 10)
 		   (invalid-number "Only decimals can contain exponent-markers")
