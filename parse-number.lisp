@@ -53,9 +53,8 @@
 
 (declaim (inline parse-integer-and-places))
 (defun parse-integer-and-places (string start end &key (radix 10))
-  #+optimizations
-  (declare (optimize (speed 3))
-	   (type simple-base-string string)
+  (declare (optimize (speed 3) (safety 1))
+	   (type string string)
 	   (type fixnum start end radix))
   (multiple-value-bind (integer end-pos)
       (if (= start end)
@@ -67,9 +66,8 @@
     (cons integer (- end-pos start))))
 
 (defun parse-integers (string start end splitting-points &key (radix 10))
-  #+optimizations
-  (declare (optimize (speed 3))
-	   (type simple-base-string string)
+  (declare (optimize (speed 3) (safety 1))
+	   (type string string)
 	   (type fixnum start end radix))
   (values-list (loop for left = start then (1+ right)
 		     for point in splitting-points
@@ -98,7 +96,6 @@
 
 (declaim (inline white-space-p))
 (defun white-space-p (x)
-  #+optimizations
   (declare (optimize (speed 3) (safety 0))
 	   (type character x))
   (and (find x *white-space-characters*) t))
