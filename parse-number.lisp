@@ -201,6 +201,32 @@
 				     :end end
 				     :radix radix)))))
 
+(defun base-for-exponent-marker (char)
+  (case char
+    ((#\d #\D)
+     10.0d0)
+    ((#\e #\E)
+     (coerce 10 *read-default-float-format*))
+    ((#\f #\F)
+     10.0f0)
+    ((#\s #\S)
+     10.0s0)
+    ((#\l #\L)
+     10.0l0)))
+
+(defun make-float/frac (radix exp-marker whole-place frac-place exp-place)
+  (let* ((base (base-for-exponent-marker exp-marker))
+         (exp (expt base (number-value exp-place))))
+    (+ (* exp (number-value whole-place))
+       (/ (* exp (number-value frac-place))
+          (expt (float radix base)
+                (places frac-place))))))
+
+(defun make-float/whole (exp-marker whole-place exp-place)
+  (* (number-value whole-place)
+     (expt (base-for-exponent-marker exp-marker)
+           (number-value exp-place))))
+
 (defun parse-positive-real-number (string &key (start 0) (end nil) (radix 10))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers and negative numbers."
   (let ((end (or end (length string)))
@@ -208,19 +234,7 @@
     (flet ((invalid-number (reason)
 	     (error 'invalid-number
 		    :value (subseq string start end)
-		    :reason reason))
-	   (base-for-exponent-marker (char)
-	     (case char
-	       ((#\d #\D)
-		10.0d0)
-	       ((#\e #\E)
-		(coerce 10 *read-default-float-format*))
-	       ((#\s #\S)
-		10.0s0)
-	       ((#\l #\L)
-		10.0l0)
-	       ((#\f #\F)
-		10.0f0))))
+		    :reason reason)))
       (case first-char
 	((#\-)
 	 (invalid-number "Invalid usage of -"))
@@ -260,20 +274,15 @@
 	      ((and /-pos exp-pos)
 	       (invalid-number "Both an exponent-marker and / cannot be present simultaneously"))
 	      ((and .-pos exp-pos)
-	       (if (< exp-pos .-pos)
+               (if (< exp-pos .-pos)
 		   (invalid-number "Exponent-markers must occur after . in number")
 		   (if (/= radix 10)
 		       (invalid-number "Only decimal numbers can contain exponent-markers or decimal points")
 		       (multiple-value-bind (whole-place frac-place exp-place)
-			   (parse-integers string start end
-					   (list .-pos exp-pos)
-					   :radix radix)
-			 (let ((base (base-for-exponent-marker exp-marker)))
-			   (* (+ (number-value whole-place)
-				 (/ (number-value frac-place)
-				    (expt (float radix base)
-					  (places frac-place))))
-			      (expt base (number-value exp-place))))))))
+                           (parse-integers string start end
+                                           (list .-pos exp-pos)
+                                           :radix radix)
+                         (make-float/frac radix exp-marker whole-place frac-place exp-place)))))
 	      (exp-pos
 	       (if (/= radix 10)
 		   (invalid-number "Only decimals can contain exponent-markers")
@@ -281,9 +290,7 @@
 		       (parse-integers string start end
 				       (list exp-pos)
 				       :radix radix)
-		     (* (number-value whole-place)
-			(expt (base-for-exponent-marker exp-marker)
-			      (number-value exp-place))))))
+		     (make-float/whole exp-marker whole-place exp-place))))
 	      (/-pos
 	       (multiple-value-bind (numerator denominator)
 		   (parse-integers string start end
