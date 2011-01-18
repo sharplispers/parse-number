@@ -36,20 +36,23 @@
   (:export #:parse-number
 	   #:parse-real-number
 	   #:parse-positive-real-number
-           #:invalid-number))
+           #:invalid-number
+           #:invalid-number-value
+           #:invalid-number-reason))
 
 (in-package #:org.mapcar.parse-number)
 
 (define-condition invalid-number (parse-error)
-  ((value :reader value
+  ((value :reader invalid-number-value
 	  :initarg :value
 	  :initform nil)
-   (reason :reader reason
+   (reason :reader invalid-number-reason
 	   :initarg :reason
 	   :initform "Not specified"))
   (:report (lambda (c s)
 	     (format s "Invalid number: ~S [Reason: ~A]"
-		     (value c) (reason c)))))
+		     (invalid-number-value c)
+                     (invalid-number-reason c)))))
 
 (declaim (inline parse-integer-and-places))
 (defun parse-integer-and-places (string start end &key (radix 10))
