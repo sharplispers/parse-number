@@ -22,7 +22,7 @@
       (dolist (*read-default-float-format* '(double-float single-float))
 	(let ((left (read-from-string value))
 	      (right (parse-number value)))
-	  (format t "~&~16@A (~16@A) = ~16A ~16A~%"
+	  (format t "~&~18@S (~26@A) = ~26A ~20A~%"
 		  value
 		  left
 		  right
