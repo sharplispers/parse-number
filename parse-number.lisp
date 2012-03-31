@@ -315,7 +315,10 @@
 				       :radix 10)
 		     (cond
                        ((minusp (places frac-part))
-                        (number-value whole-part))
+                        (if (and (zerop (number-value whole-part))
+                                 (zerop (places whole-part)))
+                            (invalid-number "Only the . is present")
+                            (number-value whole-part)))
                        ((>= (number-value frac-part) 0)
                         (+ (number-value whole-part)
                            (/ (number-value frac-part)
