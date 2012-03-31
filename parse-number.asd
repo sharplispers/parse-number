@@ -3,7 +3,10 @@
 (defsystem :parse-number
   :author "Matthew Danish"
   :maintainer "Sharp Lispers <sharplispers@googlegroups.com>"
-  :version "1.2"
+  :version #.(with-open-file (f (merge-pathnames "version.lisp-expr"
+                                                 (or *compile-file-pathname*
+                                                     *load-truename*)))
+               (read f))
   :components ((:file "parse-number"))
   :in-order-to ((asdf:test-op (asdf:load-op :parse-number-tests)))
   :perform (asdf:test-op :after (op c)
