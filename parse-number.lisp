@@ -111,7 +111,9 @@
 ;; #10r3.2
 ;; #2r  11
 
-(defun parse-number (string &key (start 0) (end nil) (radix 10))
+(defun parse-number (string &key (start 0) (end nil) (radix 10)
+                                 ((:float-format *read-default-float-format*)
+                                  *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec."
   (flet ((invalid-number (reason)
 	   (error 'invalid-number
@@ -155,7 +157,9 @@
 						:radix radix)))))))
 	  (parse-real-number string :start start :end end :radix radix)))))
 
-(defun parse-real-number (string &key (start 0) (end nil) (radix 10))
+(defun parse-real-number (string &key (start 0) (end nil) (radix 10)
+                                      ((:float-format *read-default-float-format*)
+                                       *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers."
   (let ((end (or end (length string))))
     (case (char string start)
@@ -227,7 +231,9 @@
      (expt (base-for-exponent-marker exp-marker)
            (number-value exp-place))))
 
-(defun parse-positive-real-number (string &key (start 0) (end nil) (radix 10))
+(defun parse-positive-real-number (string &key (start 0) (end nil) (radix 10)
+                                               ((:float-format *read-default-float-format*)
+                                                *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers and negative numbers."
   (let ((end (or end (length string)))
 	(first-char (char string start)))
