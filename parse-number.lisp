@@ -66,7 +66,15 @@
 			 :start start
 			 :end end
 			 :radix radix))
-    (cons integer (- end-pos start))))
+    ;; cl:parse-integer will consume trailing whitespace, thus end-pos may be
+    ;; larger than the number of digits. Instead of trimming whitespace
+    ;; beforehand we count it here
+    (let ((relevant-digits (- end-pos start
+			      (loop :for pos :from (- end-pos 1) :downto start
+				 :while (member (char string pos)
+						*white-space-characters*)
+				 :count 1))))
+      (cons integer relevant-digits))))
 
 (defun parse-integers (string start end splitting-points &key (radix 10))
   (declare (optimize (speed 3) (safety 1))
