@@ -54,6 +54,16 @@
 		     (invalid-number-value c)
                      (invalid-number-reason c)))))
 
+(declaim (type cons *white-space-characters*))
+(defparameter *white-space-characters*
+  '(#\Space #\Tab #\Return #\Linefeed))
+
+(declaim (inline white-space-p))
+(defun white-space-p (x)
+  (declare (optimize (speed 3) (safety 0))
+	   (type character x))
+  (and (find x *white-space-characters*) t))
+
 (declaim (inline parse-integer-and-places))
 (defun parse-integer-and-places (string start end &key (radix 10))
   (declare (optimize (speed 3) (safety 1))
@@ -66,7 +76,15 @@
 			 :start start
 			 :end end
 			 :radix radix))
-    (cons integer (- end-pos start))))
+    ;; cl:parse-integer will consume trailing whitespace, thus end-pos may be
+    ;; larger than the number of digits. Instead of trimming whitespace
+    ;; beforehand we count it here
+    (let ((relevant-digits (- end-pos start
+			      (loop :for pos :from (- end-pos 1) :downto start
+				 :while (member (char string pos)
+						*white-space-characters*)
+				 :count 1))))
+      (cons integer relevant-digits))))
 
 (defun parse-integers (string start end splitting-points &key (radix 10))
   (declare (optimize (speed 3) (safety 1))
@@ -92,16 +110,6 @@
 (declaim (inline number-value places))
 (defun number-value (x) (car x))
 (defun places (x) (cdr x))
-
-(declaim (type cons *white-space-characters*))
-(defparameter *white-space-characters*
-  '(#\Space #\Tab #\Return #\Linefeed))
-
-(declaim (inline white-space-p))
-(defun white-space-p (x)
-  (declare (optimize (speed 3) (safety 0))
-	   (type character x))
-  (and (find x *white-space-characters*) t))
 
 ;; Numbers which could've been parsed, but intentionally crippled not to:
 ;; #xFF.AA

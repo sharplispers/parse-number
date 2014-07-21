@@ -1,8 +1,10 @@
 ;; -*- Lisp -*-
 
 (defsystem :parse-number
-  :author "Matthew Danish"
+  :author "Matthew Danish <mrd@debian.org>"
   :maintainer "Sharp Lispers <sharplispers@googlegroups.com>"
+  :description "Number parsing library"
+  :license "public domain"
   :version #.(with-open-file (f (merge-pathnames "version.lisp-expr"
                                                  (or *compile-file-pathname*
                                                      *load-truename*)))
@@ -14,5 +16,9 @@
                                    :org.mapcar.parse-number-tests))))
 
 (defsystem :parse-number-tests
+  :author "Stelian Ionescu <sionescu@cddr.org>"
+  :maintainer "Sharp Lispers <sharplispers@googlegroups.com>"
+  :description "Parse-Number test suite"
+  :license "public domain"
   :depends-on (:parse-number)
   :components ((:file "tests")))
