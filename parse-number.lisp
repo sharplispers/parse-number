@@ -60,18 +60,18 @@
   "A list of all of the whitespace characters.")
 
 (declaim (inline white-space-p))
-;;; Is the given character a whitespace character?
 (defun white-space-p (x)
+  "Is the given character a whitespace character?"
   (declare (optimize (speed 3) (safety 0))
 	   (type character x))
   (and (find x *white-space-characters*) t))
 
 (declaim (inline parse-integer-and-places))
-;;; Parse an integer and return a 'parsed-integer'. This is an object
-;;; whose numerical value can be accessed with the function
-;;; number-value and whose length can be accessed with the function
-;;; place.
 (defun parse-integer-and-places (string start end &key (radix 10))
+  "Parse an integer and return a 'parsed-integer'. This is an object
+   whose numerical value can be accessed with the function
+   number-value and whose length can be accessed with the function
+   place."
   (declare (optimize (speed 3) (safety 1))
 	   (type string string)
 	   (type fixnum start end radix))
@@ -118,8 +118,8 @@
 								 )))))))
 
 (declaim (inline number-value places))
-(defun number-value (x) (car x))
-(defun places (x) (cdr x))
+(defun number-value (x) "Get the value of a parsed-integer." (car x))
+(defun places (x) "Get the length of a parsed-integer." (cdr x))
 
 ;; Numbers which could've been parsed, but intentionally crippled not to:
 ;; #xFF.AA
@@ -224,7 +224,7 @@
 				     :radix radix)))))
 
 (defun base-for-exponent-marker (char)
-  "Return the base for an exponent-marker"
+  "Return the base for an exponent-marker."
   (case char
     ((#\d #\D)
      10.0d0)
