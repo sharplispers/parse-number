@@ -56,15 +56,21 @@
 
 (declaim (type cons *white-space-characters*))
 (defparameter *white-space-characters*
-  '(#\Space #\Tab #\Return #\Linefeed))
+  '(#\Space #\Tab #\Return #\Linefeed)
+  "A list of all of the whitespace characters.")
 
 (declaim (inline white-space-p))
+;;; Is the given character a whitespace character?
 (defun white-space-p (x)
   (declare (optimize (speed 3) (safety 0))
 	   (type character x))
   (and (find x *white-space-characters*) t))
 
 (declaim (inline parse-integer-and-places))
+;;; Parse an integer and return a 'parsed-integer'. This is an object
+;;; whose numerical value can be accessed with the function
+;;; number-value and whose length can be accessed with the function
+;;; place.
 (defun parse-integer-and-places (string start end &key (radix 10))
   (declare (optimize (speed 3) (safety 1))
 	   (type string string)
@@ -87,6 +93,10 @@
       (cons integer relevant-digits))))
 
 (defun parse-integers (string start end splitting-points &key (radix 10))
+  "Parse a string containing multiple integers where SPLITTING-POINTS
+   is a list of locations where each location is inbetween
+   consecutive integers. This will return a list of parsed-integers.
+   The last parsed-integer will have a negative value for its length."
   (declare (optimize (speed 3) (safety 1))
 	   (type string string)
 	   (type fixnum start end radix))
@@ -214,6 +224,7 @@
 				     :radix radix)))))
 
 (defun base-for-exponent-marker (char)
+  "Return the base for an exponent-marker"
   (case char
     ((#\d #\D)
      10.0d0)
@@ -227,6 +238,9 @@
      10.0l0)))
 
 (defun make-float/frac (radix exp-marker whole-place frac-place exp-place)
+  "Create a float using EXP-MARKER as the exponent-marker and the
+   parsed-integers WHOLE-PLACE, FRAC-PLACE, and EXP-PLACE as the
+   integer part, fractional part, and exponent respectively."
   (let* ((base (base-for-exponent-marker exp-marker))
          (exp (expt base (number-value exp-place))))
     (+ (* exp (number-value whole-place))
@@ -235,6 +249,9 @@
                 (places frac-place))))))
 
 (defun make-float/whole (exp-marker whole-place exp-place)
+  "Create a float where EXP-MARKER is the exponent-marker and the
+   parsed-integers WHOLE-PLACE and EXP-PLACE as the integer part and
+   the exponent respectively."
   (* (number-value whole-place)
      (expt (base-for-exponent-marker exp-marker)
            (number-value exp-place))))
@@ -339,4 +356,3 @@
 				      :start start
 				      :end end
 				      :radix radix))))))))
-
