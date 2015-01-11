@@ -266,6 +266,15 @@
 	     (error 'invalid-number
 		    :value (subseq string start end)
 		    :reason reason)))
+      (when (position-if #'white-space-p string
+                         :start (position-if-not #'white-space-p string
+                                                 :start start
+                                                 :end end)
+                         :end   (position-if-not #'white-space-p string
+                                                 :start start
+                                                 :end end
+                                                 :from-end t))
+        (invalid-number "Whitespace inside the number."))
       (case first-char
 	((#\-)
 	 (invalid-number "Invalid usage of -"))
