@@ -274,7 +274,7 @@
                                                  :start start
                                                  :end end
                                                  :from-end t))
-        (invalid-number "Whitespace inside the number."))
+        (invalid-number "Whitespace inside the number"))
       (case first-char
 	((#\-)
 	 (invalid-number "Invalid usage of -"))
@@ -296,12 +296,18 @@
 			(invalid-number "Multiple .'s in number")
 			(setf .-pos index)))
 		   ((#\e #\E #\f #\F #\s #\S #\l #\L #\d #\D)
-		    (when (= radix 10)
-		      (when exp-pos
-			(invalid-number
-			 "Multiple exponent-markers in number"))
-		      (setf exp-pos index)
-		      (setf exp-marker (char-downcase char)))))
+                    ;; We should only execute this if the base is
+                    ;; not used for the given radix (ie the digit
+                    ;; e is valid in base 15 and up).
+                    (when (>= (+ 10
+                                 (- (char-code (char-upcase char))
+                                    (char-code #\A)))
+                              radix)
+                      (when exp-pos
+                        (invalid-number
+                         "Multiple exponent-markers in number"))
+                      (setf exp-pos index)
+                      (setf exp-marker (char-downcase char)))))
 	      when (eql index (1- end))
 	      do (case char
 		   ((#\/)
@@ -309,7 +315,7 @@
 		   ((#\d #\D #\e #\E #\s #\S #\l #\L #\f #\F)
 		    (when (= radix 10)
 		      (invalid-number "Exponent-marker at end of number")))))
-	(cond ((and /-pos .-pos)
+        (cond ((and /-pos .-pos)
 	       (invalid-number "Both . and / cannot be present simultaneously"))
 	      ((and /-pos exp-pos)
 	       (invalid-number "Both an exponent-marker and / cannot be present simultaneously"))
@@ -324,7 +330,7 @@
                                            :radix radix)
                          (make-float/frac radix exp-marker whole-place frac-place exp-place)))))
 	      (exp-pos
-	       (if (/= radix 10)
+               (if (/= radix 10)
 		   (invalid-number "Only decimals can contain exponent-markers")
 		   (multiple-value-bind (whole-place exp-place)
 		       (parse-integers string start end
@@ -361,7 +367,7 @@
                        (t
                         (invalid-number "Misplaced - sign"))))))
 	      (t
-	       (values (parse-integer string
+               (values (parse-integer string
 				      :start start
 				      :end end
 				      :radix radix))))))))
