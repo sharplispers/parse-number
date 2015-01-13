@@ -1,4 +1,4 @@
-;;;; -*- Mode: Lisp -*-
+;;;; -*- Mode: Lisp; indent-tabs-mode: nil -*-
 
 (defpackage #:org.mapcar.parse-number-tests
   (:use #:common-lisp #:org.mapcar.parse-number)
@@ -26,23 +26,23 @@
 (defun run-tests ()
   "Test all of the values and invalid-numbers."
   (format t "~&~16@A (~16@A) = ~16A ~16A~%~%"
-	  "String value" "READ value" "Parsed value" "*rdff*")
+          "String value" "READ value" "Parsed value" "*rdff*")
   (let ((expected-failures '())
-	(unexpected-failures '())
+        (unexpected-failures '())
         (unexpected-non-invalids '()))
     (dolist (value *test-values*)
       (dolist (*read-default-float-format* '(double-float single-float))
-	(let ((left (read-from-string value))
-	      (right (parse-number value)))
-	  (format t "~&~18@S (~26@A) = ~26A ~20A~%"
-		  value
-		  left
-		  right
-		  *read-default-float-format*)
-	  (unless (eql left right)
-	    (if (find value *expected-failures* :test #'string=)
-		(pushnew value expected-failures :test #'string=)
-		(pushnew value unexpected-failures :test #'string=))))))
+        (let ((left (read-from-string value))
+              (right (parse-number value)))
+          (format t "~&~18@S (~26@A) = ~26A ~20A~%"
+                  value
+                  left
+                  right
+                  *read-default-float-format*)
+          (unless (eql left right)
+            (if (find value *expected-failures* :test #'string=)
+                (pushnew value expected-failures :test #'string=)
+                (pushnew value unexpected-failures :test #'string=))))))
     (format t "~2&~16@A: ~26@A~%~%" "String Value" "Invalid")
     (dolist (value *invalid-values*)
       (dolist (*read-default-float-format* '(double-float single-float))

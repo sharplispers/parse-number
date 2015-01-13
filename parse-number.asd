@@ -1,4 +1,4 @@
-;; -*- Lisp -*-
+;; -*- Lisp; indent-tabs-mode: nil -*-
 
 (defsystem :parse-number
   :author "Matthew Danish <mrd@debian.org>"
