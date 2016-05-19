@@ -5,10 +5,7 @@
   :maintainer "Sharp Lispers <sharplispers@googlegroups.com>"
   :description "Number parsing library"
   :license "BSD 3-Clause"
-  :version #.(with-open-file (f (merge-pathnames "version.lisp-expr"
-                                                 (or *compile-file-pathname*
-                                                     *load-truename*)))
-               (read f))
+  :version (:read-file-form "version.sexp")
   :components ((:file "parse-number"))
   :in-order-to ((asdf:test-op (asdf:load-op :parse-number-tests)))
   :perform (asdf:test-op :after (op c)
