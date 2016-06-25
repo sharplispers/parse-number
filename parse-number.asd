@@ -6,7 +6,8 @@
   :description "Number parsing library"
   :license "BSD 3-Clause"
   :version (:read-file-form "version.sexp")
-  :components ((:file "parse-number"))
+  :components ((:static-file "version.sexp")
+               (:file "parse-number"))
   :in-order-to ((asdf:test-op (asdf:load-op :parse-number-tests)))
   :perform (asdf:test-op :after (op c)
              (funcall (find-symbol (string '#:run-tests)
