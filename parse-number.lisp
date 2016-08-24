@@ -186,6 +186,11 @@
                                          :start (1+ start)
                                          :end end
                                          :radix radix)))
+      ((#\+)
+       (parse-positive-real-number string
+                                   :start (1+ start)
+                                   :end end
+                                   :radix radix))
       ((#\#)
        (case (char string (1+ start))
          ((#\x #\X)
