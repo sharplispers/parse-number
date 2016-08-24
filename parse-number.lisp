@@ -75,7 +75,6 @@
   (declare (optimize (speed 3) (safety 1))
            (type string string)
            (type fixnum start end radix))
-  ()
   (multiple-value-bind (integer end-pos)
       (if (= start end)
           (values 0 0)
