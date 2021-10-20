@@ -272,9 +272,10 @@
                     :value (subseq string start end)
                     :reason reason)))
       (when (position-if #'white-space-p string
-                         :start (position-if-not #'white-space-p string
-                                                 :start start
-                                                 :end end)
+                         :start (or (position-if-not #'white-space-p string
+                                                     :start start
+                                                     :end end)
+                                    0)
                          :end   (position-if-not #'white-space-p string
                                                  :start start
                                                  :end end
