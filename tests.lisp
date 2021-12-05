@@ -51,14 +51,18 @@
           (format t "~&~18@S ~26@A ~77T~A"
                   value invalid *read-default-float-format*)
           (unless invalid
-              (pushnew value unexpected-non-invalids :test #'string=)))))
+            (pushnew value unexpected-non-invalids :test #'string=)))))
     (flet ((format-failures (label val)
              (when val
                (format t "~A: ~{~_~A~^, ~}.~%" label val))))
-      (format-failures "Expected failures" expected-failures)
-      (format-failures "Unexpected failures" unexpected-failures)
-      (format-failures "Unexpected successes"
-                       (set-difference *expected-failures* expected-failures
-                                       :test #'string=))
-      (format-failures "Unexpected non-invalid numbers"
-                       unexpected-non-invalids))))
+      (let ((unexpected-successes
+              (set-difference *expected-failures* expected-failures
+                              :test #'string=)))
+        (format-failures "Expected failures" expected-failures)
+        (format-failures "Unexpected failures" unexpected-failures)
+        (format-failures "Unexpected successes" unexpected-successes)
+        (format-failures "Unexpected non-invalid numbers"
+                         unexpected-non-invalids)
+        (if (or unexpected-failures unexpected-successes unexpected-non-invalids)
+            nil
+            t)))))
