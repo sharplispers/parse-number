@@ -251,9 +251,9 @@
   (let* ((base (base-for-exponent-marker exp-marker))
          (exp (expt base (number-value exp-place))))
     (+ (* exp (number-value whole-place))
-       (/ (* exp (number-value frac-place))
+       (* exp (/ (number-value frac-place)
           (expt (float radix base)
-                (places frac-place))))))
+                (places frac-place)))))))
 
 (defun make-float/whole (exp-marker whole-place exp-place)
   "Create a float where EXP-MARKER is the exponent-marker and the
