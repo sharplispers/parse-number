@@ -54,7 +54,7 @@
             (pushnew value unexpected-non-invalids :test #'string=)))))
     (flet ((format-failures (label val)
              (when val
-               (format t "~A: ~{~_~A~^, ~}.~%" label val))))
+               (format t "~%~A: ~{~_~A~^, ~}." label val))))
       (let ((unexpected-successes
               (set-difference *expected-failures* expected-failures
                               :test #'string=)))
