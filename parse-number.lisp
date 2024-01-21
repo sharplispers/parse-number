@@ -180,6 +180,8 @@
                                        *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers."
   (let ((end (or end (length string))))
+    (loop while (white-space-p (char string start))
+          do (incf start))
     (case (char string start)
       ((#\-)
        (* -1 (parse-positive-real-number string
