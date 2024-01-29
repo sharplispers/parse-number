@@ -19,7 +19,7 @@
 (defparameter *invalid-values*
   '("5 . 5" "--10" "/20" "d10" "5/5/5" "1.2.3" "1d0s0" "10/" "10d"
     "10.5/20" "15/20.5" "5/10d0" "5d05/10" "5d0.1" "#x5.0d0"
-    "#x5l0" "10/-5" "#x5.0" "." "#x10/-5" " ")
+    "#x5l0" "10/-5" "#x5.0" "." "#x10/-5" " " "")
   "These are the values to be tested that when parsed are expected to
    signal an invalid-number error.")
 
@@ -54,7 +54,7 @@
             (pushnew value unexpected-non-invalids :test #'string=)))))
     (flet ((format-failures (label val)
              (when val
-               (format t "~%~A: ~{~_~A~^, ~}." label val))))
+               (format t "~%~A: ~{~_~S~^, ~}." label val))))
       (let ((unexpected-successes
               (set-difference *expected-failures* expected-failures
                               :test #'string=)))

@@ -129,104 +129,106 @@
 ;; #10r3.2
 ;; #2r  11
 
+(defun trim-whitespace (string start end)
+  (let ((end (or end (length string))))
+    (when (= start end)
+      (error 'invalid-number :value "" :reason "Empty string"))
+    (let ((good-start
+           (position-if-not #'white-space-p string
+                            :start start
+                            :end end))
+          (good-end
+           (position-if-not #'white-space-p string
+                            :start start
+                            :end end
+                            :from-end t)))
+      (unless (and good-start good-end)
+        (error 'invalid-number
+               :value (subseq string start end)
+               :reason "Only whitespace present"))
+      (values good-start (1+ good-end)))))
+
 (defun parse-number (string &key (start 0) (end nil) (radix 10)
                                  ((:float-format *read-default-float-format*)
                                   *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec."
+  (multiple-value-bind (start end)
+      (trim-whitespace string start end)
+    (if (and (eql (char string start) #\#)
+             (member (char string (1+ start)) '(#\C #\c)))
+        (%parse-complex-number string start end radix)
+        (%parse-real-number string start end radix))))
+
+(defun %parse-complex-number (string start end radix)
   (flet ((invalid-number (reason)
-           (error 'invalid-number
-                  :value (subseq string start end)
-                  :reason reason)))
-    (let ((end (or end (length string))))
-      (if (and (eql (char string start) #\#)
-               (member (char string (1+ start)) '(#\C #\c)))
-          (let ((\(-pos (position #\( string :start start :end end))
-                (\)-pos (position #\) string :start start :end end)))
-            (when (or (not \(-pos)
-                      (not \)-pos)
-                      (position #\( string :start (1+ \(-pos) :end end)
-                      (position #\) string :start (1+ \)-pos) :end end))
-              (invalid-number "Mismatched/missing parenthesis"))
-            (let ((real-pos (position-if-not #'white-space-p string
-                                             :start (1+ \(-pos) :end \)-pos)))
-              (unless real-pos
-                (invalid-number "Missing real part"))
-              (let ((delimiting-space (position-if #'white-space-p string
-                                                   :start (1+ real-pos)
-                                                   :end \)-pos)))
-                (unless delimiting-space
-                  (invalid-number "Missing imaginary part"))
-                (let ((img-pos (position-if-not #'white-space-p string
-                                                :start (1+ delimiting-space)
-                                                :end \)-pos)))
-                  (unless img-pos
-                    (invalid-number "Missing imaginary part"))
-                  (let ((img-end-pos (position-if #'white-space-p string
-                                                  :start (1+ img-pos)
-                                                  :end \)-pos)))
-                    (complex (parse-real-number string
-                                                :start real-pos
-                                                :end delimiting-space
-                                                :radix radix)
-                             (parse-real-number string
-                                                :start img-pos
-                                                :end (or img-end-pos
-                                                         \)-pos)
-                                                :radix radix)))))))
-          (parse-real-number string :start start :end end :radix radix)))))
+             (error 'invalid-number
+                    :value (subseq string start end)
+                    :reason reason)))
+    (let ((\(-pos (position #\( string :start start :end end))
+          (\)-pos (position #\) string :start start :end end)))
+      (when (or (not \(-pos)
+                (not \)-pos)
+                (position #\( string :start (1+ \(-pos) :end end)
+                (position #\) string :start (1+ \)-pos) :end end))
+        (invalid-number "Mismatched/missing parenthesis"))
+      (let ((real-pos (position-if-not #'white-space-p string
+                                       :start (1+ \(-pos) :end \)-pos)))
+        (unless real-pos
+          (invalid-number "Missing real part"))
+        (let ((delimiting-space (position-if #'white-space-p string
+                                             :start (1+ real-pos)
+                                             :end \)-pos)))
+          (unless delimiting-space
+            (invalid-number "Missing imaginary part"))
+          (let ((img-pos (position-if-not #'white-space-p string
+                                          :start (1+ delimiting-space)
+                                          :end \)-pos)))
+            (unless img-pos
+              (invalid-number "Missing imaginary part"))
+            (let ((img-end-pos (position-if #'white-space-p string
+                                            :start (1+ img-pos)
+                                            :end \)-pos)))
+              (complex (%parse-real-number string real-pos delimiting-space radix)
+                       (%parse-real-number string
+                                           img-pos (or img-end-pos \)-pos)
+                                           radix)))))))))
 
 (defun parse-real-number (string &key (start 0) (end nil) (radix 10)
                                       ((:float-format *read-default-float-format*)
                                        *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers."
-  (let ((end (or end (length string))))
-    (case (char string start)
-      ((#\-)
-       (* -1 (parse-positive-real-number string
-                                         :start (1+ start)
-                                         :end end
-                                         :radix radix)))
-      ((#\+)
-       (parse-positive-real-number string
-                                   :start (1+ start)
-                                   :end end
-                                   :radix radix))
-      ((#\#)
-       (case (char string (1+ start))
-         ((#\x #\X)
-          (parse-real-number string
-                             :start (+ start 2)
-                             :end end
-                             :radix 16))
-         ((#\b #\B)
-          (parse-real-number string
-                             :start (+ start 2)
-                             :end end
-                             :radix 2))
-         ((#\o #\O)
-          (parse-real-number string
-                             :start (+ start 2)
-                             :end end
-                             :radix 8))
-         (t (if (digit-char-p (char string (1+ start)))
-                (let ((r-pos (position #\r string
-                                       :start (1+ start)
-                                       :end end
-                                       :key #'char-downcase)))
-                  (unless r-pos
-                    (error 'invalid-number
-                           :value (subseq string start end)
-                           :reason "Missing R in #radixR"))
-                  (parse-real-number string
-                                     :start (1+ r-pos)
+  (multiple-value-bind (start end)
+      (trim-whitespace string start end)
+    (%parse-real-number string start end radix)))
+
+(defun %parse-real-number (string start end radix)
+  (case (char string start)
+    ((#\-)
+     (* -1 (%parse-positive-real-number string (1+ start) end radix)))
+    ((#\+)
+     (%parse-positive-real-number string (1+ start) end radix))
+    ((#\#)
+     (case (char string (1+ start))
+       ((#\x #\X)
+        (%parse-real-number string (+ start 2) end 16))
+       ((#\b #\B)
+        (%parse-real-number string (+ start 2) end 2))
+       ((#\o #\O)
+        (%parse-real-number string (+ start 2) end 8))
+       (t (if (digit-char-p (char string (1+ start)))
+              (let ((r-pos (position #\r string
+                                     :start (1+ start)
                                      :end end
-                                     :radix (parse-integer string
-                                                           :start (1+ start)
-                                                           :end r-pos)))))))
-      (t (parse-positive-real-number string
-                                     :start start
-                                     :end end
-                                     :radix radix)))))
+                                     :key #'char-downcase)))
+                (unless r-pos
+                  (error 'invalid-number
+                         :value (subseq string start end)
+                         :reason "Missing R in #radixR"))
+                (let ((radix (parse-integer string
+                                            :start (1+ start)
+                                            :end r-pos)))
+                  (%parse-real-number string (1+ r-pos) end radix)))))))
+    (t (%parse-positive-real-number string start end radix))))
 
 (defun base-for-exponent-marker (char)
   "Return the base for an exponent-marker."
@@ -265,8 +267,12 @@
                                                ((:float-format *read-default-float-format*)
                                                 *read-default-float-format*))
   "Given a string, and start, end, and radix parameters, produce a number according to the syntax definitions in the Common Lisp Hyperspec -- except for complex numbers and negative numbers."
-  (let ((end (or end (length string)))
-        (first-char (char string start)))
+  (multiple-value-bind (start end)
+      (trim-whitespace string start end)
+    (%parse-positive-real-number string start end radix)))
+
+(defun %parse-positive-real-number (string start end radix)
+  (let ((first-char (char string start)))
     (flet ((invalid-number (reason)
              (error 'invalid-number
                     :value (subseq string start end)
