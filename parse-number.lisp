@@ -230,38 +230,40 @@
                   (%parse-real-number string (1+ r-pos) end radix)))))))
     (t (%parse-positive-real-number string start end radix))))
 
-(defun base-for-exponent-marker (char)
+(defun type-for-exponent-marker (char)
   "Return the base for an exponent-marker."
   (case char
     ((#\d #\D)
-     10.0d0)
+     'double-float)
     ((#\e #\E)
-     (coerce 10 *read-default-float-format*))
+     *read-default-float-format*)
     ((#\f #\F)
-     10.0f0)
+     'single-float)
     ((#\s #\S)
-     10.0s0)
+     'short-float)
     ((#\l #\L)
-     10.0l0)))
+     'long-float)))
 
-(defun make-float/frac (radix exp-marker whole-place frac-place exp-place)
+(defun make-float/frac (exp-marker whole-place frac-place exp-place)
   "Create a float using EXP-MARKER as the exponent-marker and the
    parsed-integers WHOLE-PLACE, FRAC-PLACE, and EXP-PLACE as the
    integer part, fractional part, and exponent respectively."
-  (let* ((base (base-for-exponent-marker exp-marker))
-         (exp (expt base (number-value exp-place))))
-    (+ (* exp (number-value whole-place))
-       (* exp (/ (number-value frac-place)
-          (expt (float radix base)
-                (places frac-place)))))))
+  (let* ((exp (expt 10 (number-value exp-place)))
+         (integer-value
+           (+ (* exp (number-value whole-place))
+              (* exp (/ (number-value frac-place)
+                        (expt 10 (places frac-place))))))
+         (type (type-for-exponent-marker exp-marker)))
+    (coerce integer-value type)))
 
 (defun make-float/whole (exp-marker whole-place exp-place)
   "Create a float where EXP-MARKER is the exponent-marker and the
    parsed-integers WHOLE-PLACE and EXP-PLACE as the integer part and
    the exponent respectively."
-  (* (number-value whole-place)
-     (expt (base-for-exponent-marker exp-marker)
-           (number-value exp-place))))
+  (let ((integer-value (* (number-value whole-place)
+                          (expt 10 (number-value exp-place))))
+        (type (type-for-exponent-marker exp-marker)))
+    (coerce integer-value type)))
 
 (defun parse-positive-real-number (string &key (start 0) (end nil) (radix 10)
                                                ((:float-format *read-default-float-format*)
@@ -340,7 +342,7 @@
                            (parse-integers string start end
                                            (list .-pos exp-pos)
                                            :radix radix)
-                         (make-float/frac radix exp-marker whole-place frac-place exp-place)))))
+                         (make-float/frac exp-marker whole-place frac-place exp-place)))))
               (exp-pos
                (if (/= radix 10)
                    (invalid-number "Only decimals can contain exponent-markers")
